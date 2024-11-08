@@ -1,0 +1,116 @@
+// All tests assume the server was started completel new.
+
+### Get all Orders.
+GET http://localhost:3000/order
+Accept: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body.length === 2, "Number or orders incorrect.")
+    });
+%}
+
+### Get First order
+GET http://localhost:3000/order/1
+Accept: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body["print"] === "Acoustic Guitar Cooky Cutter", "Print is not correct");
+    });
+%}
+
+### Patch first Order to Change Material
+PATCH http://localhost:3000/order/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "material": "ABS"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body["material"] === "ABS", "Material not changed");
+    });
+%}
+
+### Patch first Order to Change Status
+PATCH http://localhost:3000/order/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "processing"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body["status"] === "processing", "Print status not changed");
+    });
+%}
+
+### Patch First order to a state it cannot go to
+PATCH http://localhost:3000/order/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "completed"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+### Try to change an order that is no longer new.
+PATCH http://localhost:3000/order/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "material": "PETG"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 400, "Response status is not 400");
+    });
+%}
+
+### Add a new order
+POST http://localhost:3000/order
+Content-Type: application/json
+Accept: application/json
+
+{
+  "customer": 3,
+  "print": "Fucktopus",
+  "colors": ["Red"],
+  "material": "PLA",
+  "shipping": "Pickup Amsterdam"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 201, "Response status is not 201");
+        client.assert(response.body["id"] === 3, "ID incorrect");
+    });
+%}
+
+### Get Order just added
+GET http://localhost:3000/order/3
+Accept: application/json
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+        client.assert(response.body["print"] === "Fucktopus", "Print is not correct");
+    });
+%}
